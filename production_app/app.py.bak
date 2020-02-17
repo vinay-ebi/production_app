@@ -1,0 +1,58 @@
+import logging.config
+import click
+from flask import Flask, Blueprint
+#from ensembl_prodinf import HiveInstance
+from production_app import settings
+from production_app.ensembl_api.handover_api.handover.endpoints.handover_endpoint import handover_ns
+from production_app.ensembl_api.handover_api.restplus import handover_api 
+from production_app.database import db
+from production_app import factory
+
+def configure_app(flask_app):
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
+    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = settings.SQLALCHEMY_TRACK_MODIFICATIONS
+    flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = settings.RESTPLUS_SWAGGER_UI_DOC_EXPANSION
+    flask_app.config['RESTPLUS_VALIDATE'] = settings.RESTPLUS_VALIDATE
+    flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
+    flask_app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
+    #flask_app.config['CELERY_BROKER_URL'] = settings.CELERY_BROKER_URL
+    #flask_app.config['CELERY_RESULT_BACKEND'] = settings.CELERY_RESULT_BACKEND
+    #flask_app.config.from_pyfile('conf/db_config.py')
+    #flask_app.analysis = flask_app.config["HIVE_ANALYSIS"]
+    #flask_app.servers = None
+
+def initialize_app(flask_app):
+    configure_app(flask_app)
+    blueprint = Blueprint('ensembl_api/handover_api', __name__, url_prefix='/ensembl/handover')
+    handover_api.init_app(blueprint)
+    handover_api.add_namespace(handover_ns)
+    flask_app.register_blueprint(blueprint)
+    db.init_app(flask_app)
+    #celery = celery.set_celery(flask_app)
+
+
+def make_celery(app, factory):
+    initialize_app(app)
+    factory.make_celery(app)
+    return factory.celery
+
+
+
+app = Flask(__name__)
+#make celery
+celery = make_celery(app, factory)
+logging.basicConfig(level=logging.INFO)
+
+
+
+
+@click.command()
+@click.option('-p', '--port', type=int, default=5000)
+def main(port):
+    #initialize_app(app)
+    logging.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format('localhost'))
+    app.run(host="0.0.0.0", debug=settings.FLASK_DEBUG, port=port)
+
+
+
+

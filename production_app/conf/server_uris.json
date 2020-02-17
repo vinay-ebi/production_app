@@ -1,0 +1,11 @@
+{           
+    "vinay":[
+        "mysql://vinay:vinay@localhost:3306/"
+     ],
+    "vcopy": [
+        "mysql://vinay:vinay@localhost:3306/"
+    ],
+  "ensrw": [
+        "mysql://ensrw:scr1b3s1@mysql-ens-sta-3:4160/bombyx_mori_core_47_100_1"
+  ]
+}

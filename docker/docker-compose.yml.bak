@@ -1,0 +1,7 @@
+version: '3'
+services:
+  production_app:
+    build: '.'
+    ports:
+      - "5000:5000"
+    command: -r handover -p 5000

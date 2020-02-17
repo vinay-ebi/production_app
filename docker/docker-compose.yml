@@ -1,0 +1,89 @@
+version: '3'
+services:
+  production_app:
+    build: '.'
+    network_mode: host
+    ports:
+      - "5000:5000"
+    command: -r handover -p 5000
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    network_mode: host
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+      - '4369:4369'
+      - '5671:5671'    
+
+  handover-worker:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app     
+      - rabbitmq
+    command: -w handover
+
+  datacheck_app:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app
+    ports:
+      - "5001:5001"        
+    command: -r datacheck -p 5001
+
+  datacheck-worker:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app      
+      - rabbitmq
+    command: -w datacheck
+
+  dbcopy_app:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app
+    ports:
+      - "5002:5002"
+    command: -r dbcopy -p 5002
+
+  dbcopy-worker:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app      
+      - rabbitmq
+    command: -w dbcopy
+
+  metadata_app:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app
+    ports:
+      - "5003:5003"
+    command: -r metadata -p 5003
+
+  metadata-worker:
+    image: docker_production_app
+    network_mode: host
+    depends_on:
+      - production_app     
+      - rabbitmq
+    command: -w metadata
+
+  celery-manager:
+    image: docker_production_app
+    network_mode: host
+    ports:
+      - "5555:555"
+    depends_on:
+      - rabbitmq
+      - metadata-worker
+      - dbcopy-worker
+      - datacheck-worker
+      - handover-worker  
+    command: -f
