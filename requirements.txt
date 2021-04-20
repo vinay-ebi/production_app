@@ -10,7 +10,7 @@ Flask==1.1.1
 flask-restplus==0.12.1
 Flask-SQLAlchemy==2.4.0
 idna==2.8
-py==1.8.0
+py==1.10.0
 pyasn1==0.4.5
 PyMySQL==0.9.3
 pyparsing==2.4.1.1
